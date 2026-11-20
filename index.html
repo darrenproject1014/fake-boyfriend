@@ -4001,6 +4001,24 @@ if(typeof SQBY!=='undefined')Object.assign(SQBY,{13:['tugas','jajan'],14:['perpu
 /* FIX: step Bab 2 harus mencatat S.cur → adegan selesai tercatat, refresh tidak mengulang chapter */
 Object.keys(STEPS).filter(k=>/^c(12b|1[3-9]|2[0-2])/.test(k)).forEach(k=>{const st=STEPS[k];if(!st||!st.run||st.run._cur)return;const f=st.run;st.run=function(...a){S.cur=k;save();return f.apply(this,a)};st.run._cur=1});
 {const _csr=chStartRescue;chStartRescue=function(){const d=S.day;if(S.cdone&&Object.keys(S.cdone).some(k=>new RegExp('^ch'+d+'[a-z]$').test(k)))return false;if(S.cur&&new RegExp('^c'+d+'[a-z]').test(S.cur))return false;return _csr.apply(this,arguments)}}
+/* FIX: chat Bab 2 harus menandai selesai + melepas S.lc (sebelumnya chat terakhir bisa diputar ulang terus) */
+Object.keys(CHATS).filter(k=>/^ch(1[3-9]|2[0-2])[a-z]$/.test(k)).forEach(k=>{const f=PCB[k];if(f&&f._lc)return;const w=function(...a){S.cdone=S.cdone||{};S.cdone[k]=1;if(S.lc===k)S.lc=null;save();if(f)return f.apply(this,a)};w._lc=1;PCB[k]=w});
+(function(){if((S.day||1)<13)return;const dOf=k=>{const m=/^c[h]?(\d+)/.exec(k||'');return m?+m[1]:null};let fix=0;S.cdone=S.cdone||{};
+Object.keys(CHATS).forEach(k=>{const d=dOf(k);if(d&&d<S.day&&!S.cdone[k]){S.cdone[k]=1;fix=1}});
+if(S.lc&&(S.cdone[S.lc]||dOf(S.lc)!==S.day)){S.lc=null;fix=1}
+if(S.choice&&CHATS[S.choice.id]&&dOf(S.choice.id)!==S.day){S.choice=null;fix=1}
+['nx','cur','destK'].forEach(f=>{const d=dOf(S[f]);if(S[f]&&/^c\d/.test(S[f])&&d&&d!==S.day&&d>=12){S[f]=null;if(f==='destK')S.dest=null;fix=1}});
+if(fix)save()})();
+/* FIX: kalau halaman ke-refresh di jeda antara chat selesai dan adegan berikutnya, lanjutannya tidak hilang */
+const B2NEXT={ch13a:'c13b',ch14a:'c14c',ch15a:'c15b',ch16a:'PROG:ch16',ch17a:'c17b',ch18a:'c18b',ch19a:'c19d',ch20a:'CHAT:ch20b',ch20b:'c20b',ch20c:'c20d',ch21a:'c21c',ch22a:'c22b',ch22b:'c22d',ch22c:'c22e'};
+Object.keys(B2NEXT).forEach(k=>{const f=PCB[k];PCB[k]=function(...a){S.nxp=B2NEXT[k];save();return f.apply(this,a)}});
+{const _qN=queue;queue=function(k,...a){if(S.nxp===k){S.nxp=null;save()}return _qN.call(this,k,...a)}}
+{const _rcN=runChat;runChat=function(k,...a){if(S.nxp==='CHAT:'+k){S.nxp=null;save()}return _rcN.call(this,k,...a)}}
+{const _prN=prog;prog=function(k,...a){if(S.nxp==='PROG:'+k){S.nxp=null;save()}return _prN.call(this,k,...a)}}
+function b2Resume(){const p=S.nxp;if(!p||S.nx||S.dest||SCN||S.choice||V.ty||window.SCRB||document.querySelector('.tc'))return;if(tasksDone()){S.nxp=null;save();return}
+if(p.startsWith('CHAT:')){const k=p.slice(5);if(S.cdone&&S.cdone[k]){S.nxp=null;save();return}runChat(k)}else if(p.startsWith('PROG:')){prog(p.slice(5))}else if(STEPS[p]){if(S.sd&&S.sd[p]){S.nxp=null;save();return}queue(p);toast('▶ Lanjutan cerita dipulihkan')}if(V.s==='home')draw()}
+{const _enN=A.enter;A.enter=function(...a){const r=_enN.apply(this,a);setTimeout(b2Resume,2600);return r}}
+{const _usN=A.unstick;A.unstick=function(){b2Resume();return _usN.apply(this,arguments)}}
 
 ens();applySet();
 </script></body></html>
