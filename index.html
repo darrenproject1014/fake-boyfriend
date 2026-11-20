@@ -2691,7 +2691,10 @@ function chStartRescue(){const d=S.day,k=CHSTART[d];if(!k||!STEPS[k]||S.fin)retu
 .lks{background:linear-gradient(#0b1626ee,#000e),var(--wp,#123) center/cover;justify-content:flex-start;padding-top:80px}
 .lks .tm{font-size:84px;font-weight:200;line-height:1}.lks .dt{font-size:17px;opacity:.85}
 .lks .nn{margin-top:auto;margin-bottom:50px;opacity:.6;font-size:13px}
-.rl.tears::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:4;backdrop-filter:blur(1.6px);-webkit-backdrop-filter:blur(1.6px);background:radial-gradient(circle at 20% 10%,#fff2 0 3px,#0000 4px),radial-gradient(circle at 70% 30%,#fff2 0 4px,#0000 5px),radial-gradient(circle at 40% 60%,#fff1 0 3px,#0000 4px),radial-gradient(circle at 85% 75%,#fff2 0 5px,#0000 6px);background-size:180px 220px;animation:tdrop 5s linear infinite}
+.tearL{position:absolute;inset:0;z-index:4;pointer-events:none;transition:opacity .8s}.tearL.out{opacity:0}
+.tearP{position:absolute;top:82px;left:50%;transform:translateX(-50%);background:#0b1626d9;color:#cfe3ff;border:1px solid #8fb6ff55;border-radius:999px;padding:6px 14px;font-size:12px;white-space:nowrap;box-shadow:0 4px 16px #0006;animation:fd .4s}
+.td{position:absolute;pointer-events:auto;border-radius:52% 48% 55% 45%/60% 58% 42% 40%;backdrop-filter:blur(7px) saturate(1.2);-webkit-backdrop-filter:blur(7px) saturate(1.2);background:radial-gradient(circle at 32% 28%,#ffffff70 0 6%,#ffffff18 18%,#9fc3ff12 60%,#0000 72%);box-shadow:inset 0 -6px 14px #ffffff22,inset 0 4px 10px #00000030;transition:opacity .15s;animation:tdin .9s ease-out;touch-action:none;cursor:grab}
+@keyframes tdin{from{transform:scale(.3) translateY(-20px);opacity:0}}
 @keyframes tdrop{to{background-position:0 440px,0 440px,0 440px,0 440px}}
 `;document.head.appendChild(st)})();
 
@@ -2797,9 +2800,16 @@ function typingFx(o,cb,host){const ov=fxOv(host);ov.innerHTML=`<h3>${esc(o.title
 const tx=$('.tx',ov),t=o.t||'gue juga kangen';let s='';const typ=k=>{if(k<t.length){s+=t[k];tx.textContent=s;setTimeout(()=>typ(k+1),110)}else setTimeout(dl,1300)},dl=()=>{if(s){s=s.slice(0,-1);tx.textContent=s;setTimeout(dl,45)}else{$('.fxh',ov).innerHTML=(o.after?esc(o.after)+'<br><br>':'')+`<button class='fxb' data-x='ok'>lanjut ▶</button>`}};setTimeout(()=>typ(0),700);
 ov.addEventListener('click',e=>{if(e.target.closest("[data-x='ok']")){ov.remove();if(cb)cb()}});return ov}
 
+/* air mata: beberapa tetes buram yang bisa diusap */
+function tearsOff(el,now){const L=el&&el.querySelector('.tearL');if(!L)return;clearInterval(L._i);el.removeEventListener('pointerdown',L._w,true);el.removeEventListener('pointermove',L._w,true);if(now)return L.remove();L.classList.add('out');setTimeout(()=>L.remove(),800)}
+function tearsOn(el){tearsOff(el,1);const L=document.createElement('div');L.className='tearL';L.innerHTML="<div class='tearP'>😢 darren lagi nangis · usap tetesannya pakai jari</div>";el.appendChild(L);let wiped=0,down=false;
+const add=()=>{if(!L.isConnected)return clearInterval(L._i);if(L.querySelectorAll('.td').length>=5)return;const d=document.createElement('div');d.className='td';const z=64+Math.random()*64;d.style.cssText=`width:${z}px;height:${z*1.12}px;left:${4+Math.random()*68}%;top:${14+Math.random()*48}%`;d._o=1;d.addEventListener('click',e=>e.stopPropagation());L.appendChild(d)};
+for(let k=0;k<3;k++)setTimeout(add,k*450);L._i=setInterval(add,3200);
+L._w=e=>{if(e.type==='pointerdown')down=true;if(e.type==='pointermove'&&!down&&e.pointerType!=='mouse')return;const t=document.elementFromPoint(e.clientX,e.clientY);if(!t||!t.classList.contains('td'))return;e.stopPropagation();t._o-=e.type==='pointerdown'?.3:.09;t.style.opacity=Math.max(0,t._o);if(t._o<=.05){t.remove();wiped++;const p=L.querySelector('.tearP');if(p)p.textContent=wiped>=4?'😢 …dia masih nangis. tapi lebih pelan sekarang.':'😢 darren lagi nangis · '+wiped+' air mata diusap'}};
+el.addEventListener('pointerdown',L._w,true);el.addEventListener('pointermove',L._w,true);['pointerup','pointercancel'].forEach(v=>el.addEventListener(v,()=>down=false,true))}
 const FXR={gtr,rec:recGame,play:recPlay,paper:paperFx,call:callFx,wa:waFx,draft:draftFx,hold:holdFx,np:npFx,lock:lockFx,typing:typingFx};
 const _snFX=sNext;sNext=function(){const s=SCN&&SCN.q[0];if(s&&s[0]==='fx'){SCN.q.shift();const el=SCN.el,my=SCN,bx=$('#rbx',el);
-if(s[1]==='tears'){el.classList.toggle('tears',!!s[2]);return sNext()}
+if(s[1]==='tears'){s[2]?tearsOn(el):tearsOff(el);return sNext()}
 if(s[1]==='hang'){el.querySelectorAll('.callpill').forEach(p=>p.remove());toast('📞 Panggilan berakhir');return sNext()}
 if(s[1]==='push'){(s[2]||[]).forEach(([id,m],i)=>setTimeout(()=>{try{push(id,Object.assign({at:Date.now()},m))}catch(e){}},i*500));return sNext()}
 if(s[1]==='set'){Object.assign(S,s[2]||{});save();return sNext()}
