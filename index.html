@@ -3998,6 +3998,9 @@ if(typeof UNK!=='undefined'&&!UNK.includes('selamat datang di bab 2, darren.'))U
 if(typeof SQBY!=='undefined')Object.assign(SQBY,{13:['tugas','jajan'],14:['perpus','matcha'],15:['futsal','tugas'],16:['traktir','mamah'],17:['rapat','perpus'],18:['jajan','matcha'],19:['tugas','futsal'],20:['mamah','perpus'],21:['matcha','tugas'],22:['traktir','rapat']});
 /* arsip Safari: chat Bab 2 yang dipicu dari chat lain ikut tersimpan */
 {const _sOf=storyOf;storyOf=function(n){const o=_sOf(n);if(n>=13){const have=new Set(o.filter(x=>x[0]==='c').map(x=>x[1]));Object.keys(CHATS).filter(k=>new RegExp('^ch'+n+'[a-z]$').test(k)).sort().forEach(k=>{if(!have.has(CHATS[k]))o.push(['c',CHATS[k]])})}return o}}
+/* FIX: step Bab 2 harus mencatat S.cur → adegan selesai tercatat, refresh tidak mengulang chapter */
+Object.keys(STEPS).filter(k=>/^c(12b|1[3-9]|2[0-2])/.test(k)).forEach(k=>{const st=STEPS[k];if(!st||!st.run||st.run._cur)return;const f=st.run;st.run=function(...a){S.cur=k;save();return f.apply(this,a)};st.run._cur=1});
+{const _csr=chStartRescue;chStartRescue=function(){const d=S.day;if(S.cdone&&Object.keys(S.cdone).some(k=>new RegExp('^ch'+d+'[a-z]$').test(k)))return false;if(S.cur&&new RegExp('^c'+d+'[a-z]').test(S.cur))return false;return _csr.apply(this,arguments)}}
 
 ens();applySet();
 </script></body></html>
