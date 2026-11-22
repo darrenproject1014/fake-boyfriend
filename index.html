@@ -7096,5 +7096,16 @@ chxApp();
 A.chxgo=function(v){chxGo(v)};
 {const _apX=app;app=function(){if(V.app==='chx')return `<div class='app' style='padding:0;height:100%;overflow:auto'><div class='chxapp'><div style='font-size:22px;font-weight:800'>🎬 Pindah Chapter</div><div style='font-size:12px;opacity:.6;margin-top:4px'>khusus editor · sekarang di Chapter ${S.day}</div>${chxGrid("data-a='chxgo' data-v")}</div></div>`;return _apX()}}
 
+/* ===== FIX: keluar di tengah adegan (mis. hp sean ch24) → adegan bisa dilanjut lagi ===== */
+function stepPending(){const c=S.cur;if(c&&STEPS[c]&&S.day>=13&&new RegExp('^c'+S.day+'[a-z]').test(c)&&!(S.sd&&S.sd[c]))return c;
+if(S.day>=23&&typeof B3ORD!=='undefined'&&B3ORD[S.day]&&!S.fin){const L=B3ORD[S.day].split(/\s+/);let any=false;for(const t of L){if(/^ch/.test(t)){if(!(S.cdone&&S.cdone[t]))return null;any=true;continue}if(!STEPS[t])continue;if(!(S.sd&&S.sd[t]))return any?t:null;any=true}}return null}
+const storyBusy=()=>!!(SCN||S.nx||S.dest||S.choice||V.ty||window.SCRB||document.querySelector('.tc,.fxo,.md,.chxpk,.endov'));
+function stepResume(force){if(!force&&storyBusy())return false;const c=stepPending();if(!c)return false;try{document.querySelectorAll('.fxo').forEach(e=>e.remove());const h=document.querySelector('.povS');if(h)h.classList.remove('povS')}catch(e){}V.s='home';V.app=null;V.chat=null;draw();queue(c);toast('▶ Adegan dilanjutkan');return true}
+A.b3res=function(){if(stepResume(true))return;if(S.nxp){b2Resume();return}toast('Nggak ada adegan yang ketunda. Kalau masih nyangkut: Settings → 🛟 Cerita nyangkut.')};
+{const _enR=A.enter;A.enter=function(...a){const r=_enR.apply(this,a);setTimeout(()=>{if(!S.nxp)stepResume()},3300);return r}}
+{const _usR=A.unstick;A.unstick=function(){if(stepResume(true))return;return _usR.apply(this,arguments)}}
+{const _nhR=nowHint;nowHint=function(){const c=stepPending();if(c&&!storyBusy())return ['▶ Ketuk di sini buat lanjut: '+((STEPS[c].l||'').replace(/^Chapter \d+:\s*/,'')),'b3res'];return _nhR()}}
+{const _qhR=questHTML;questHTML=function(){let h=_qhR();if(stepPending()&&!storyBusy())h=h.replace(/class='grp q-now'\s+style='/,"class='grp q-now' data-a='b3res' style='cursor:pointer;");return h}}
+
 ens();applySet();
 </script></body></html>
